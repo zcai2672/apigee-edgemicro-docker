@@ -8,7 +8,7 @@ https://www.docker.com/products/docker-toolbox
 
 ### Getting Started
 1. Clone the project
-```git clone git@gitlab.apigee.com:rmishra/apigee-edgemicro-docker.git```
+```git clone git@gitlab.apigee.com:apigee-se/apigee-edgemicro-docker.git```
 2. Switch directory
 ```cd apigee-edgemicro-docker```
 3. Build the docker image using following command:
