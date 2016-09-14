@@ -16,12 +16,12 @@ https://www.docker.com/products/docker-toolbox
 4. This will create a image apigee-edgemicro and you can see the images using command:
 ```docker images```
 5. To start docker
-```docker run -d -P -it apigee-edge-aio```
+```docker run -d -P -it apigee-edgemicro```
 6. To start edgemicro the following command:
 ```docker run -d -P -it apigee-edgemicro /bin/bash -c "edgemicro start -o ssridhar -e test -k 8b0df9aa29f8c1a35cf13ea4ea02ede95ee1acefdf9f6b6e57cfd6535b41ddba -s 5c0d061732c25fa80c7d32d943fa5dc5bdde0199e70a4317d91e6862e0de2b2c && /bin/bash"```
 NOTE: The key and secret were generated in Step 3
 
-7. To get all the docker container running
+7. To get all docker containers that are running
 ```
 docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                     NAMES
