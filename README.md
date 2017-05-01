@@ -1,5 +1,5 @@
-# Apigee Edge Docker Image Creation
-This project describes how you can create a docker image for Apigee Edge Installation.
+# Apigee Edge Microgateway Docker Image Creation
+This project describes how you can create a docker image for Apigee Edge Microgateway.
 
 ### Prerequisites
 1. Docker
@@ -30,6 +30,45 @@ At the end of a successful configuration, you will see a file in the ~/.edgemicr
 ```docker images```
 7. To start docker
 ```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2" -e  EDGEMICRO_SECRET="exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0" -P -it microgateway```
+
+### Operationalizing Edge Microgateway (MG)
+#### Configuration File
+Each MG instance can expose a different set of APIs. Furthermore, each MG container can load a different set of plugins depending on the needs of the API. 
+
+All of this is controlled via the configuration yaml file. Generate the config yaml outside of the docker image. Edit the configuration file as necessary (enable proxies, plugins etc.) before you build the docker image. You'll want to store the configuration file in a source code repo.
+
+#### Custom plugins
+If the MG instance uses custom plugins, one way is to package those custom plugins as npm modules (private repo or public repo). Then the installation of MG can be done as:
+```npm install -g edgemico plugin-1 plugin-2```
+
+#### A Sample configuration file
+```
+edge_config:
+.
+.
+. omitted for brevity
+edgemicro:
+  port: 7000
+  max_connections: 1000
+  max_connections_hard: 5000
+  restart_sleep: 500
+  restart_max: 50
+  max_times: 300
+  config_change_poll_interval: 600
+  logging:
+    level: error
+    dir: /var/tmp
+    stats_log_interval: 60
+    rotate_interval: 24
+  plugins:
+    sequence:
+      - oauth
+      - plugin-1
+      - plugin-2
+.
+.
+. omitted for brevity
+```
 
 ### License
 Apache 2.0
