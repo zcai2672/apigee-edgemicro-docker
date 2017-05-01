@@ -6,27 +6,30 @@ This project describes how you can create a docker image for Apigee Edge Install
 Please refer to this page to install docker in your machine
 https://www.docker.com/products/docker-toolbox
 
+### Pre-requisites
+[outside of docker]
+1. Install Edge microgateway
+```npm install -g edgemicro```
+2. Initialize Edge microgateway
+```edgemicro init```
+3. Configure Edge microgateway
+```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"```
+NOTE: OPDK users should use "edgemicro private configure".
+
+At the end of a successful configuration, you will see a file in the ~/.edgemicro/{org}-{env}-config.yaml as well as a key and secret. The key maps to EDGEMICRO_KEY and the secret maps to EDGEMICRO_SECRET in the following section.
+
 ### Getting Started
 1. Clone the project
-```git clone git@gitlab.apigee.com:apigee-se/apigee-edgemicro-docker.git```
+```git clone https://github.com/srinandan/apigee-edgemicro-docker.git```
 2. Switch directory
 ```cd apigee-edgemicro-docker```
-3. Build the docker image using following command:
-```docker build --build-arg ADMINUSER="trial@apigee.com" --build-arg ADMINPASSWORD="password"  --build-arg ORG=ssridhar --build-arg ENV=test -t apigee-edgemicro .```
-4. This will create a image apigee-edgemicro and you can see the images using command:
+4. Copy the {org}-{env}-config.yaml to the current folder (from pre-reqs)
+5. Build the docker image using following command:
+```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" --build-arg KEY="bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2" --build-arg SECRET="exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0" -t microgateway .```
+6. This will create a image apigee-edgemicro and you can see the images using command:
 ```docker images```
-5. To start docker
-```docker run -d -P -it apigee-edgemicro```
-6. To start edgemicro the following command:
-```docker run -d -P -it apigee-edgemicro /bin/bash -c "edgemicro start -o ssridhar -e test -k 8b0df9aa29f8c1a35cf13ea4ea02ede95ee1acefdf9f6b6e57cfd6535b41ddba -s 5c0d061732c25fa80c7d32d943fa5dc5bdde0199e70a4317d91e6862e0de2b2c && /bin/bash"```
-NOTE: The key and secret were generated in Step 3
-
-7. To get all docker containers that are running
-```
-docker ps
-CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                     NAMES
-027907c6c5b5        apigee-edgemicro    "/bin/bash -c 'edgemi"   10 seconds ago      Up 9 seconds        0.0.0.0:32774->8000/tcp   tiny_ptolemy
-```
+7. To start docker
+```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2" -e  EDGEMICRO_SECRET="exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0" -P -it microgateway```
 
 ### License
 Apache 2.0
