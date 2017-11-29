@@ -7,14 +7,17 @@ ARG KEY=somekey
 ARG SECRET=somesecret
 RUN npm install -g edgemicro
 RUN edgemicro init
-RUN export EDGEMICRO_ORG=$ORG
-RUN export EDGEMICRO_ENV=$ENV
-RUN export EDGEMICRO_KEY=$KEY
-RUN export EDGEMICRO_SECRET=$SECRET
-RUN export DEBUG=*
+ENV EDGEMICRO_ORG=$ORG
+ENV EDGEMICRO_ENV=$ENV
+ENV EDGEMICRO_KEY=$KEY
+ENV EDGEMICRO_SECRET=$SECRET
+ENV DEBUG=*
 COPY $ORG-$ENV-config.yaml /root/.edgemicro
+COPY entrypoint.sh /tmp
 # copy tls files if needed
 # COPY key.pem /root/.edgemicro
 # COPY cert.pem /root/.edgemicro
-CMD ["/bin/bash", "-c","edgemicro start"]
 EXPOSE 8000
+EXPOSE 8443
+ENTRYPOINT ["/tmp/entrypoint.sh"]
+CMD [""]
