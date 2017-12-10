@@ -1,5 +1,5 @@
-# Apigee Edge Microgateway Docker Image Creation
-This project describes how you can create a docker image for Apigee Edge Microgateway.
+# Apigee Edge Microgateway on Docker & Kubernetes
+This project describes how you can Apigee Edge Microgateway on Kubernetes.
 
 ### Prerequisites
 1. Docker
@@ -68,6 +68,82 @@ edgemicro:
 .
 .
 . omitted for brevity
+```
+
+### Deploying to Kubernetes
+#### Tag the docker image
+
+```docker tag microgateway gcr.io/{projectID}/microgteway:latest```
+
+#### Create Deployment and Service
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-microgateway
+  labels:
+    app: edge-microgateway
+spec:
+  ports:
+  - port: 8000
+    name: http
+  selector:
+    app: edge-microgatewy
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: edge-microgateway
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        name: edge-microgateway
+    spec:
+      containers:
+        - name: edge-microgateway
+          image: gcr.io/project/microgateway
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8000
+```
+Create the resources
+
+```
+kubectl create -f microgw.yaml --validate=true --dry-run=false
+```
+
+#### Testing the deployment
+* Use ```kubectl get svc``` to get the external IP address. For ex:
+```
+NAME           TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)          AGE
+kubernetes     ClusterIP      10.xx.xxx.x    <none>           443/TCP          17d
+microgateway   LoadBalancer   10.xx.xxx.xx   xx.xxx.xxx.xxx   8000:30486/TCP   17d
+```
+
+* Test via curl
+```
+curl -v http://xx.xxx.xxx.xxx:8000/httpbin -v
+
+
+*   Trying xx.xxx.xxx.xxx...
+* TCP_NODELAY set
+* Connected to xx.xxx.xxx.xxx (xx.xxx.xxx.xxx) port 8000 (#0)
+> GET /httpbin HTTP/1.1
+> Host: xx.xxx.xxx.xxx:8000
+> User-Agent: curl/7.54.0
+> Accept: */*
+>
+< HTTP/1.1 401 Unauthorized
+< content-type: application/json
+< Date: Sun, 10 Dec 2017 22:17:21 GMT
+< Connection: keep-alive
+< Content-Length: 84
+<
+* Connection #0 to host 35.193.218.139 left intact
+{"error":"missing_authorization","error_description":"Missing Authorization header"}%
 ```
 
 ### License
