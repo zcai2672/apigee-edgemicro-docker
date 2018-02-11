@@ -70,14 +70,39 @@ edgemicro:
 . omitted for brevity
 ```
 
-### Deploying to Kubernetes
+### Deploying to Kubernetes (GKE)
+#### Set your project id
+```
+export PROJECT_ID=xxxx
+```
 #### Tag the docker image
 
-```docker tag microgateway gcr.io/{projectID}/microgteway:latest```
+```docker tag microgateway gcr.io/$PROJECT_ID/microgteway:latest```
 
-#### Create Deployment and Service
+#### Convert EdgeMicro credentials to base64
+Convert each of these values into base64. THis will help store those credentails into k8s secrets.
+```
+echo -n "org" | base64
+echo -n "env" | base64
+echo -n "key" | base64
+echo -n "secret" | base64
+```
+Use the results in the configuration below
+
+#### Sample Configuration
 
 ```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mgwsecret
+type: Opaque
+data:
+  mgorg: xxx=
+  mgenv: xxx==
+  mgkey: Oxxxw==
+  mgsecret: Mxxxw==
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -89,30 +114,47 @@ spec:
   - port: 8000
     name: http
   selector:
-    app: edge-microgatewy
+    app: edge-microgateway
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   name: edge-microgateway
 spec:
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        name: edge-microgateway
-    spec:
-      containers:
-        - name: edge-microgateway
-          image: gcr.io/project/microgateway
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8000
+  restartPolicy: Never
+  containers:
+    - name: edge-microgateway
+      image: gcr.io/project/microgateway:latest
+      ports:
+        - containerPort: 8000
+      env:
+        - name: EDGEMICRO_ORG
+          valueFrom:
+            secretKeyRef:
+              name: mgwsecret
+              key: mgorg
+        - name: EDGEMICRO_ENV
+          valueFrom:
+            secretKeyRef:
+              name: mgwsecret
+              key: mgenv
+        - name: EDGEMICRO_KEY
+          valueFrom:
+            secretKeyRef:
+              name: mgwsecret
+              key: mgkey
+        - name: EDGEMICRO_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: mgwsecret
+              key: mgsecret
+        - name: EDGEMICRO_CONFIG_DIR
+          value: /home/microgateway/.edgemicro
 ```
-Create the resources
 
+Create the resources
 ```
-kubectl create -f microgw.yaml --validate=true --dry-run=false
+kubectl create -f mgw-secret.yaml --validate=true --dry-run=false
 ```
 
 #### Testing the deployment

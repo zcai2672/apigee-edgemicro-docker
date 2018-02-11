@@ -1,19 +1,22 @@
 FROM node:slim
-ARG ADMINUSER=someuser
-ARG ADMINPASSWORD=somepassword
 ARG ORG=someorg
 ARG ENV=someenv
-ARG KEY=somekey
-ARG SECRET=somesecret
+#uncomment these if you're not using k8s secrets
+#ARG KEY=somekey
+#ARG SECRET=somesecret
+#ENV EDGEMICRO_ORG=$ORG
+#ENV EDGEMICRO_ENV=$ENV
+#ENV EDGEMICRO_KEY=$KEY
+#ENV EDGEMICRO_SECRET=$SECRET
+
+RUN groupadd microgateway
+RUN useradd microgateway -g microgateway -m -d /home/microgateway
 RUN npm install -g edgemicro
-RUN edgemicro init
-ENV EDGEMICRO_ORG=$ORG
-ENV EDGEMICRO_ENV=$ENV
-ENV EDGEMICRO_KEY=$KEY
-ENV EDGEMICRO_SECRET=$SECRET
-ENV DEBUG=*
-COPY $ORG-$ENV-config.yaml /root/.edgemicro
+RUN su - microgateway -c "edgemicro init"
+COPY $ORG-$ENV-config.yaml /home/microgateway/.edgemicro
+RUN chown microgateway:microgateway /home/microgateway/.edgemicro/*
 COPY entrypoint.sh /tmp
+RUN chmod +x /tmp/entrypoint.sh
 # copy tls files if needed
 # COPY key.pem /root/.edgemicro
 # COPY cert.pem /root/.edgemicro

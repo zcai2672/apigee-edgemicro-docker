@@ -16,7 +16,7 @@ kind: Deployment
 metadata:
   name: edge-microgateway
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -24,8 +24,8 @@ spec:
     spec:
       containers:
         - name: edge-microgateway
-          image: gcr.io/project/microgateway
-          imagePullPolicy: Always
+          image: gcr.io/nandanks-151422/microgteway:latest 
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8000
 ---

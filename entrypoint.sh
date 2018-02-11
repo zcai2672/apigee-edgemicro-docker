@@ -2,18 +2,18 @@
 
 echo "Started entry point" >> /tmp/entrypoint.log
 
-edgemicro start 
+su - microgateway -m -c "cd /home/microgateway && edgemicro start" 
 
 # SIGUSR1-handler
 my_handler() {
   echo "my_handler" >> /tmp/entrypoint.log
-  edgemicro stop
+  su - microgateway -m -c "cd /home/microgateway && edgemicro stop"
 }
 
 # SIGTERM-handler
 term_handler() {
   echo "term_handler" >> /tmp/entrypoint.log
-  edgemicro stop
+  su - microgateway -m -c "cd /home/microgateway && edgemicro stop"
   exit 143; # 128 + 15 -- SIGTERM
 }
 
