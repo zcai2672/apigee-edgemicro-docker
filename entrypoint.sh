@@ -2,7 +2,7 @@
 
 echo "Started entry point" >> /tmp/entrypoint.log
 
-su - microgateway -m -c "cd /home/microgateway && edgemicro start" 
+su - microgateway  -m -c 'cd /home/microgateway && export HOME="/home/microgateway"  && edgemicro start'
 
 # SIGUSR1-handler
 my_handler() {
