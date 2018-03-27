@@ -1,0 +1,15 @@
+# Run this in Google Cloud platform 
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-microgateway
+  labels:
+    app: edge-microgateway
+spec:
+  ports:
+  - port: 8000
+    name: http
+    protocol: TCP
+  selector:
+    app: edge-microgateway
+  type: LoadBalancer

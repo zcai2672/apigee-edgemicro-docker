@@ -5,6 +5,10 @@ This project describes how you can Apigee Edge Microgateway on Kubernetes.
 1. Docker
 Please refer to this page to install docker in your machine
 https://www.docker.com/products/docker-toolbox
+2. Node.js 4.x or later, for more info visit https://github.com/nodejs/Release
+3. You will have basic understanding and experience with Docker
+4. If you are going to run microgateway in a Kubernetes environment, you will need to have some experience with Kubernetes
+
 
 ### Pre-requisites
 [outside of docker]
@@ -13,23 +17,37 @@ https://www.docker.com/products/docker-toolbox
 2. Initialize Edge microgateway
 ```edgemicro init```
 3. Configure Edge microgateway
-```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"```
+```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"``` when the configuration is successful, you will see the key and secret credentials displayed, save it to a note for later use. 
 NOTE: OPDK users should use "edgemicro private configure".
 
 At the end of a successful configuration, you will see a file in the ~/.edgemicro/{org}-{env}-config.yaml as well as a key and secret. The key maps to EDGEMICRO_KEY and the secret maps to EDGEMICRO_SECRET in the following section.
 
-### Getting Started
+
+### Option 1 - Getting Started - Docker
 1. Clone the project
-```git clone https://github.com/srinandan/apigee-edgemicro-docker.git```
+```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
 2. Switch directory
 ```cd apigee-edgemicro-docker```
 4. Copy the {org}-{env}-config.yaml to the current folder (from pre-reqs). Edit the Dockerfile with the correct file name.
 5. Build the docker image using following command:
-```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" --build-arg KEY="bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2" --build-arg SECRET="exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0" -t microgateway .```
+```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway .```
 6. This will create a image apigee-edgemicro and you can see the images using command:
 ```docker images```
 7. To start docker
-```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2" -e  EDGEMICRO_SECRET="exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0" -P -it microgateway```
+```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway```
+
+
+### Option 2 - Getting Started - Docker in Kubenetes
+1. Clone the project
+```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
+2. Switch directory
+```cd apigee-edgemicro-docker```
+4. Copy the {org}-{env}-config.yaml to the current folder (from pre-reqs). Edit the Dockerfile with the correct file name.
+5. Build the docker image using following command:
+```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" --build-arg KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" --build-arg SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -t microgateway .```
+6. This will create a image apigee-edgemicro and you can see the images using command:
+```docker images```
+7. 
 
 ### Operationalizing Edge Microgateway (MG)
 #### Configuration File
@@ -89,8 +107,9 @@ echo -n "secret" | base64
 ```
 Use the results in the configuration below
 
-#### Sample Configuration
-
+#### Edit the Secret Configuration
+Run this file in your kubenetes environment to create the secret 
+for more info please visit: https://kubernetes.io/docs/concepts/configuration/secret/
 ```
 apiVersion: v1
 kind: Secret
@@ -102,29 +121,22 @@ data:
   mgenv: xxx==
   mgkey: Oxxxw==
   mgsecret: Mxxxw==
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: edge-microgateway
-  labels:
-    app: edge-microgateway
-spec:
-  ports:
-  - port: 8000
-    name: http
-  selector:
-    app: edge-microgateway
----
+```
+
+#### Edit the Pod Configuration
+change the 'image' location to point to the correct docker location
+```
 apiVersion: v1
 kind: Pod
 metadata:
   name: edge-microgateway
+  labels:
+    app: edge-microgateway 
 spec:
   restartPolicy: Never
   containers:
     - name: edge-microgateway
-      image: gcr.io/project/microgateway:latest
+      image: ivancai/microgateway3:latest
       ports:
         - containerPort: 8000
       env:
@@ -150,11 +162,38 @@ spec:
               key: mgsecret
         - name: EDGEMICRO_CONFIG_DIR
           value: /home/microgateway/.edgemicro
+
+```
+#### Confirm the service Configuration
+change the 'image' location to point to the correct docker location
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-microgateway
+  labels:
+    app: edge-microgateway
+spec:
+  ports:
+  - port: 8000
+    name: http
+  selector:
+    app: edge-microgateway
+
 ```
 
+
+
+Once you have configured the resources configuration files, go to your kubenetes environment
+
+if you are using docker hub, 
+
 Create the resources
+
+
 ```
 kubectl create -f mgw-secret.yaml --validate=true --dry-run=false
+
 ```
 
 #### Testing the deployment
