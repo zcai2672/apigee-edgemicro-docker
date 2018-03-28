@@ -36,196 +36,205 @@ At the end of a successful configuration, you will see a file in the ~/.edgemicr
 7. To start docker
 ```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway```
 
+8. To test ``` curl http://localhost:8000/hello/echo ```
+    you should see something like this
+    ```
+    {"error":"missing_authorization","error_description":"Missing Authorization header"}
+    ```    
 
-### Option 2 - Getting Started - Docker in Kubenetes
+
+### Option 2 - Getting Started - Docker in Kubenetes (GKE)
 1. Clone the project
 ```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
 2. Switch directory
 ```cd apigee-edgemicro-docker```
-4. Copy the {org}-{env}-config.yaml to the current folder (from pre-reqs). Edit the Dockerfile with the correct file name.
-5. Build the docker image using following command:
+3. Copy the {org}-{env}-config.yaml to the current folder (from pre-reqs). Edit the Dockerfile with the correct file name.
+4. Build the docker image using following command:
 ```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" --build-arg KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" --build-arg SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -t microgateway .```
-6. This will create a image apigee-edgemicro and you can see the images using command:
+5. This will create a image apigee-edgemicro and you can see the images using command:
 ```docker images```
-7. 
 
-### Operationalizing Edge Microgateway (MG)
-#### Configuration File
-Each MG instance can expose a different set of APIs. Furthermore, each MG container can load a different set of plugins depending on the needs of the API. 
+6. (Optional) If the MG instance uses custom plugins, one way is to package those custom plugins as npm modules (private repo or public repo). Then the installation of MG can be done as:
 
-All of this is controlled via the configuration yaml file. Generate the config yaml outside of the docker image. Edit the configuration file as necessary (enable proxies, plugins etc.) before you build the docker image. You'll want to store the configuration file in a source code repo.
-
-#### Custom plugins
-If the MG instance uses custom plugins, one way is to package those custom plugins as npm modules (private repo or public repo). Then the installation of MG can be done as:
-```npm install -g edgemico plugin-1 plugin-2```
-
-#### A Sample configuration file
-```
-edge_config:
-.
-.
-. omitted for brevity
-edgemicro:
-  port: 7000
-  max_connections: 1000
-  max_connections_hard: 5000
-  restart_sleep: 500
-  restart_max: 50
-  max_times: 300
-  config_change_poll_interval: 600
-  logging:
-    level: error
-    dir: /var/tmp
-    stats_log_interval: 60
-    rotate_interval: 24
-  plugins:
+   ```
+   npm install -g edgemico plugin-1 plugin-2
+   ``` 
+    Edit the configuration file ( {org}-{env}-config.yaml )
+   ```
+    plugins:
     sequence:
       - oauth
       - plugin-1
       - plugin-2
-.
-.
-. omitted for brevity
-```
+    .
+    .
+    . omitted for brevity
+    ```
 
-### Deploying to Kubernetes (GKE)
-#### Set your project id
-```
-export PROJECT_ID=xxxx
-```
-#### Tag the docker image
+7. (Optional) A different set of APIs can be created for different instances by using proxyPattern inside the edge_config member
+    ```
+    edge_config:
+      proxyPattern: edgemicro_part_1*
+      .
+      .
+      . omitted for brevity
+    ```
 
-```docker tag microgateway gcr.io/$PROJECT_ID/microgteway:latest```
+    For more reference please see **Filtering downloaded proxies** section [here](https://docs.apigee.com/api-platform/microgateway/2.5.x/operation-and-configuration-reference-edge-microgateway)
 
-#### Convert EdgeMicro credentials to base64
+
+8.  Prepare the docker images registraton
+
+    * In the Kubernetes terminal run:
+        ```
+        export PROJECT_ID=xxxx
+        ```
+    * Tag the docker image (GCR)
+
+      ```
+      docker tag microgateway gcr.io/$PROJECT_ID/microgateway:latest
+      ```
+
+9. Create Kubernetes secret
+    * Convert EdgeMicro credentials to base64
 Convert each of these values into base64. THis will help store those credentails into k8s secrets.
-```
-echo -n "org" | base64
-echo -n "env" | base64
-echo -n "key" | base64
-echo -n "secret" | base64
-```
-Use the results in the configuration below
+      ```
+      echo -n "org" | base64
+      echo -n "env" | base64
+      echo -n "key" | base64
+      echo -n "secret" | base64
+      ```
+    * Use the results in the configuration in the mgw-secret.yaml
 
-#### Edit the Secret Configuration
-Run this file in your kubenetes environment to create the secret 
-for more info please visit: https://kubernetes.io/docs/concepts/configuration/secret/
-```
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mgwsecret
-type: Opaque
-data:
-  mgorg: xxx=
-  mgenv: xxx==
-  mgkey: Oxxxw==
-  mgsecret: Mxxxw==
-```
+      ```
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: mgwsecret
+      type: Opaque
+      data:
+        mgorg: xxxxxx
+        mgenv: xxxxxx
+        mgkey: xxxxxx
+        mgsecret: xxxxxx
+      ```
+       Run this file in your kubernetes environment to create the secret configuration
+       ``` 
+       kubectl create -f  mgw-secret.yaml
+       ```
+      for more info on Kubernetes secrets please visit the [here](https://kubernetes.io/docs/concepts/configuration/secret/)
+     
+      You can check if the secret creation by issuring the following command
+      ```
+      kubectl get secrets
+      ```
+      You will see something similar to this:
 
-#### Edit the Pod Configuration
-change the 'image' location to point to the correct docker location
-```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: edge-microgateway
-  labels:
-    app: edge-microgateway 
-spec:
-  restartPolicy: Never
-  containers:
-    - name: edge-microgateway
-      image: ivancai/microgateway3:latest
+      ```
+      NAME           TYPE       DATA      AGE
+      mgwsecret      Opaque     4         23h
+      ```
+
+      
+10. Create Kubernetes microgateway pod
+
+    Fill in the 'image' member to point to the correct docker container registry location (In Step 8) in the mgw-pod.yaml
+    ```
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: edge-microgateway
+      labels:
+        app: edge-microgateway 
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: edge-microgateway
+          # Need to update
+          image: gcr.io/$PROJECT_ID/microgateway:latest 
+          ports:
+            - containerPort: 8000
+          env:
+            - name: EDGEMICRO_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: mgwsecret
+                  key: mgorg
+            - name: EDGEMICRO_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: mgwsecret
+                  key: mgenv
+            - name: EDGEMICRO_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mgwsecret
+                  key: mgkey
+            - name: EDGEMICRO_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mgwsecret
+                  key: mgsecret
+            - name: EDGEMICRO_CONFIG_DIR
+              value: /home/microgateway/.edgemicro    
+    ```
+    Run the script to create the pod
+    ```
+    kubectl create -f mgw-pod.yaml
+    ```
+
+    Check if the pod has been created
+    ```
+    kubectl get pods
+    ```
+    You will see something like this: 
+    ```
+    NAME                            READY     STATUS    RESTARTS   AGE
+    edge-microgateway               1/1       Running   0          17h
+    ```  
+
+    
+
+11. Create Kubernetes microgateway Service to expose the gateway
+
+    Make sure that your selector is configured to point to the pod labels member from the step above. 
+    ```
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: edge-microgateway
+      labels:
+        app: edge-microgateway
+    spec:
       ports:
-        - containerPort: 8000
-      env:
-        - name: EDGEMICRO_ORG
-          valueFrom:
-            secretKeyRef:
-              name: mgwsecret
-              key: mgorg
-        - name: EDGEMICRO_ENV
-          valueFrom:
-            secretKeyRef:
-              name: mgwsecret
-              key: mgenv
-        - name: EDGEMICRO_KEY
-          valueFrom:
-            secretKeyRef:
-              name: mgwsecret
-              key: mgkey
-        - name: EDGEMICRO_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: mgwsecret
-              key: mgsecret
-        - name: EDGEMICRO_CONFIG_DIR
-          value: /home/microgateway/.edgemicro
+      - port: 8000
+        name: http
+      selector:
+        app: edge-microgateway
 
-```
-#### Confirm the service Configuration
-change the 'image' location to point to the correct docker location
-```
-apiVersion: v1
-kind: Service
-metadata:
-  name: edge-microgateway
-  labels:
-    app: edge-microgateway
-spec:
-  ports:
-  - port: 8000
-    name: http
-  selector:
-    app: edge-microgateway
+    ```
+    Check if service has been created 
 
-```
+    ```
+    kubectl get services 
+    ```
+    You should see something like this: 
+    ```
+    NAME                TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)          AGE
+    edge-microgateway   LoadBalancer   xx.xx.xx.xx     xx.xx.xx.xx     8000:31827/TCP   17h
+    kubernetes          ClusterIP      10.59.240.1     <none>          443/TCP          1d
+    ```
 
 
-
-Once you have configured the resources configuration files, go to your kubenetes environment
-
-if you are using docker hub, 
-
-Create the resources
-
-
-```
-kubectl create -f mgw-secret.yaml --validate=true --dry-run=false
-
-```
-
-#### Testing the deployment
-* Use ```kubectl get svc``` to get the external IP address. For ex:
-```
-NAME           TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)          AGE
-kubernetes     ClusterIP      10.xx.xxx.x    <none>           443/TCP          17d
-microgateway   LoadBalancer   10.xx.xxx.xx   xx.xxx.xxx.xxx   8000:30486/TCP   17d
-```
-
-* Test via curl
-```
-curl -v http://xx.xxx.xxx.xxx:8000/httpbin -v
+    Test via curl using the generated external ip, please make sure that your endpoint is valid
+    ```
+    curl -v http://<EXTERNAL-IP>:8000/hello/echo -v
+    ```
+    You should be see something like this:
 
 
-*   Trying xx.xxx.xxx.xxx...
-* TCP_NODELAY set
-* Connected to xx.xxx.xxx.xxx (xx.xxx.xxx.xxx) port 8000 (#0)
-> GET /httpbin HTTP/1.1
-> Host: xx.xxx.xxx.xxx:8000
-> User-Agent: curl/7.54.0
-> Accept: */*
->
-< HTTP/1.1 401 Unauthorized
-< content-type: application/json
-< Date: Sun, 10 Dec 2017 22:17:21 GMT
-< Connection: keep-alive
-< Content-Length: 84
-<
-* Connection #0 to host 35.193.218.139 left intact
-{"error":"missing_authorization","error_description":"Missing Authorization header"}%
-```
+    ```
+    {"error":"missing_authorization","error_description":"Missing Authorization header"}
+    ```
 
-### License
-Apache 2.0
+
