@@ -10,22 +10,21 @@ https://www.docker.com/products/docker-toolbox
 4. If you choose to in a Kubernetes environment, you will need to have some experience with Kubernetes
 
 
-### Pre-requisites
-[outside of docker]
-1. Install Edge microgateway
-```npm install -g edgemicro```
-2. Initialize Edge microgateway
-```edgemicro init```
-3. Configure Edge microgateway
-```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"``` when the configuration is successful, you will see the key and secret credentials displayed, save it to a note for later use. 
-NOTE: OPDK users should use "edgemicro private configure".
-
-At the end of a successful configuration, you will see a file in the ~/.edgemicro/{org}-{env}-config.yaml as well as a key and secret. The key maps to EDGEMICRO_KEY and the secret maps to EDGEMICRO_SECRET in the following section.
-
 
 ### Option 1 - Docker only deployment
 
 You can set this up in your desktop environment. 
+
+1. Open a terminal in your localhost/server and do the following:
+    * Install Edge microgateway
+    ```npm install -g edgemicro```
+    * Initialize Edge microgateway
+    ```edgemicro init```
+    * Configure Edge microgateway
+    ```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"``` when the configuration is successful, you will see the key and secret credentials displayed, save it to a note for later use. 
+    NOTE: OPDK users should use "edgemicro private configure".
+
+    At the end of a successful configuration, you will see a file in the ~/.edgemicro/{org}-{env}-config.yaml as well as a key and secret. The key maps to EDGEMICRO_KEY and the secret maps to EDGEMICRO_SECRET in the following section.
 
 1. Clone the project
 ```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
@@ -52,7 +51,19 @@ You will need to a Google Cloud platform Account for this option. A local Kubern
 
 1. Login to your GCP console, create your Kubernetes cluster under Kubernetes Engine. 
 
-2. Clone the project
+2. Open a terminal from your Kubernetes cluster and do the following:
+
+    * Install Edge microgateway
+    ```npm install -g edgemicro```
+    * Initialize Edge microgateway
+    ```edgemicro init```
+    * Configure Edge microgateway
+    ```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"``` when the configuration is successful, you will see the key and secret credentials displayed, save it to a note for later use. 
+    NOTE: OPDK users should use "edgemicro private configure".
+
+    At the end of a successful configuration, you will see a file in the ~/.edgemicro/{org}-{env}-config.yaml as well as a key and secret. The key maps to EDGEMICRO_KEY and the secret maps to EDGEMICRO_SECRET in the following section.
+
+2. Run the following command to clone the Microgate way project
 ```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
 3. Switch directory
 ```cd apigee-edgemicro-docker```
