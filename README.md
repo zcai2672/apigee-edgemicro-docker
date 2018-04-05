@@ -3,16 +3,16 @@ This project describes how you can run Apigee Edge Microgateway docker and Kuber
 
 
 ## Prerequisites
-1. Docker, for more info please visit [Docker home page](https://www.docker.com/get-docker)
-2. Account with Apigee and understanding how to setup Edge Microgateway proxies setup. For more info, please see [Edge Microgateway Documentation](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway)
+1. Docker installation, for more info please visit [Docker home page](https://www.docker.com/get-docker)
+2. Account with Apigee and understanding how to setup Edge Microgateway proxies. Please see [Edge Microgateway Documentation](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway) for more information
 2. Node.js 4.x or later, for more info visit [Nodejs Github Release Document](https://github.com/nodejs/Release)
 3. Basic understanding and experience with Docker
-4. If you choose to in a Kubernetes environment, you will need to have some experience with Kubernetes
+4. If you choose to run it in a Kubernetes environment, you will need to have some experience with Kubernetes
 
 
 
 ## Section 1 - Configuration Preperation 
-Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate how we can deploy seperate microgateway services to be used for seperate proxy endpoints by utilizing filters 
+Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate how we can deploy seperate microgateway containers to be used for seperate proxy endpoints by utilizing filters 
 
    1. Create two microgateway aware reverse proxies:
       * edgemicro_firstproxy
@@ -26,7 +26,7 @@ Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate
         * Existing API http://httpbin.org/
 
 
-2. In this section, you will generate the key, secret and the {org}-{env}-config.yaml to be used later for deployment. This section assumes you have node.js and npm already installed on your machine.  
+2. In this section, you will generate the key, secret and the {org}-{env}-config.yaml to be used later for deployment. This section assumes you have node.js and npm already installed on your machine.
   
       Open a terminal in your localhost/server and do the following:
     
@@ -141,7 +141,7 @@ You can run the the microgateway image in same local environment that you have p
 
 
 
-### Option 2 - Docker in GCP Kubenetes deployment 
+### Option 2 - Docker in GCP Kubernetes deployment 
 
 You will need to a Google Cloud platform Account for this option. A local Kubernetes installation might also work but has not been tested at this stage. 
 
