@@ -3,7 +3,7 @@ This project describes how you can run Apigee Edge Microgateway docker and Kuber
 
 
 ## Prerequisites
-1. Docker installation, for more info please visit [Docker home page](https://www.docker.com/get-docker)
+1. Docker installation. For more info please visit [Docker home page](https://www.docker.com/get-docker)
 2. Account with Apigee and understanding how to setup Edge Microgateway proxies. Please see [Edge Microgateway Documentation](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway) for more information
 2. Node.js 4.x or later, for more info visit [Nodejs Github Release Document](https://github.com/nodejs/Release)
 3. Basic understanding and experience with Docker
@@ -76,14 +76,16 @@ The steps in this section is to build docker images. To complete this section, y
 6. Build the docker image using following command:
 ```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway:first .```
 
-7. Run ```docker images``` to get the IMAGE_ID of image created in previous step. 
+7. Run ```docker images``` to get the IMAGE_ID of the container image created in previous step. 
 
-8. Tag the images ```docker tag <image_id> <docker_hub_id>/microgateway:first``` 
+8. Tag the image ```docker tag <image_id> <docker_hub_id>/microgateway:first``` 
 
-9. push the images to a container register such as Docker Hub or Google Container register
-```docker push <docker_hub_id>/microgateway:first```
+9. Login to docker hub, run ```docker login```
 
-10. Now we will create an image to the second API endpoints change proxyPattern configuration to 'edgemicro_secondproxy*' ```proxyPattern: edgemicro_secondproxy*``` to the edge_config member in the {org}-{env}-config.yaml
+9. push the image to a container register such as Docker Hub (you can also use Google Container Register)
+```docker push <docker_hub_id>/microgateway:first``` 
+
+10. Now edit the {org}-{env}-config.yaml file again by changing the proxyPattern configuration to 'edgemicro_secondproxy*' ```proxyPattern: edgemicro_secondproxy*``` in the edge_config member in the {org}-{env}-config.yaml
     ```
     edge_config:
       proxyPattern: edgemicro_secondproxy*
@@ -92,7 +94,7 @@ The steps in this section is to build docker images. To complete this section, y
       . omitted for brevity
     ```
 11. Build the docker image using following command:
-```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway:secondproxy .```
+```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway:second .```
 
 12. Run ```docker images``` to get the IMAGE_ID of image created in previous step. 
 
