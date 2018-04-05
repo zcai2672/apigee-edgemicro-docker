@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: edge-microgateway
+  name: edge-microgateway-first
   labels:
     app: edge-microgateway 
 spec:
   restartPolicy: Never
   containers:
     - name: edge-microgateway
-      image: ivancai/microgateway:v2
+      image: <container registory location>//microgateway:first
       ports:
         - containerPort: 8000
       env:

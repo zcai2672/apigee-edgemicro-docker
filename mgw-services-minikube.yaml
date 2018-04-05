@@ -1,0 +1,16 @@
+#Do not run in GCP, only run this in Minikube
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-microgateway
+  labels:
+    app: edge-microgateway
+spec:
+  ports:
+  - port: 8000
+    name: http
+    nodePort: 30011
+    protocol: TCP
+  selector:
+    app: edge-microgateway
+  type: NodePort
