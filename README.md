@@ -1,52 +1,146 @@
 # Apigee Edge Microgateway on Docker & Kubernetes
-This project describes how you can Apigee Edge Microgateway docker
+This project describes how you can run Apigee Edge Microgateway docker and Kubernetes 
 
-### Prerequisites
+
+## Prerequisites
 1. Docker
 Please refer to this page to install docker in your machine
 https://www.docker.com/products/docker-toolbox
-2. Account with Apigee and with edge microgateway proxies setup. For more info please see [here](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway)
+2. Account with Apigee and with edge microgateway proxies setup. For more info, please visit [here](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway)
 2. Node.js 4.x or later, for more info visit https://github.com/nodejs/Release
 3. Basic understanding and experience with Docker
 4. If you choose to in a Kubernetes environment, you will need to have some experience with Kubernetes
 
-### Configuration Preperation 
 
-In this section, you will generate the key, secret and the {org}-{env}-config.yaml to be used later for deployment.  
+
+## Section 1 - Configuration Preperation 
+Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate how we can deploy seperate microgateway services to be used for seperate proxy endpoints by utilizing filters 
+
+   1. Create two microgateway aware reverse proxies:
+      * edgemicro_secure
+        * Proxy Name: edgemicro_secure
+        * Proxy Base Path: secure
+        * Existing API http://httpbin.org/
+
+      * edgemicro_public
+        * Proxy Name: edgemicro_public
+        * Proxy Base Path: public
+        * Existing API http://httpbin.org/
+
+
+In this section, you will generate the key, secret and the {org}-{env}-config.yaml to be used later for deployment. This section assumes you have node.js and npm already installed on your machine.  
   
-    Open a terminal in your localhost/server and do the following:
-    * Install Edge microgateway
-    ```npm install -g edgemicro```
-    * Initialize Edge microgateway
-    ```edgemicro init```
-    * Configure Edge microgateway
-    ```edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"``` 
-   
-    At the end of a successful configuration, you will see a file in the ~/.edgemicro/{org}-{env}-config.yaml as well as a key and secret. The key maps to EDGEMICRO_KEY and the secret maps to EDGEMICRO_SECRET in the following section.
+  Open a terminal in your localhost/server and do the following:
+    
+  1. Install Edge microgateway
+    
+  ```
+  npm install -g edgemicro
+  ```
+    
+  2. Initialize Edge microgateway
+  
+  ```
+  edgemicro init
+  ```
+  
+  3. Configure Edge microgateway and save the key and secret for later use. 
+  
+  ```
+  edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"
+  ``` 
+
+  4. Save the key and secret in a text file for later use.
+
+  At the end of a successful configuration, in addition to the key and secret, you will also see the ~/.edgemicro/{org}-{env}-config.yaml file generated in [your base directory]/.edgemicro
    
 
+## Section 2 - Build docker images
+The steps in this section is to build the docker image. To complete this section, you will need to have Docker installed and an Docker hub account. 
+
+1. Change directory ```cd ~/.edgemicro/```
+2. Clone the project
+```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
+
+3. Copy the {org}-{env}-config.yaml generated in the [Configuration Preperation](#Configuration-Preperation) step to the 'apigee-edgemicro-docker' folder created from the previous step.
+
+4. Switch directory
+```cd apigee-edgemicro-docker```
+
+5. Add ```proxyPattern: edgemicro_secure*``` to the edge_config member in the {org}-{env}-config.yaml
+    ```
+    edge_config:
+      proxyPattern: edgemicro_secure*
+      .
+      .
+      . omitted for brevity
+    ```
+6. Build the docker image using following command:
+```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway:secure .```
+
+7. Run ```docker images``` to get the IMAGE_ID of image created in previous step. 
+
+8. Tag the images ```docker tag <image_id> <docker_hub_id>/microgateway:secure``` 
+
+9. push the images to a container register such as Docker Hub or Google Container register
+```docker push <docker_hub_id>/microgateway:secure```
+
+10. Now we create an image to the public API endpoints change proxyPattern configuration to 'edgemicro_public*' ```proxyPattern: edgemicro_public*``` to the edge_config member in the {org}-{env}-config.yaml
+    ```
+    edge_config:
+      proxyPattern: edgemicro_public*
+      .
+      .
+      . omitted for brevity
+    ```
+11. Build the docker image using following command:
+```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway:public .```
+
+12. Run ```docker images``` to get the IMAGE_ID of image created in previous step. 
+
+13. Run ```docker tag <image_id> <docker_hub_id>/microgateway:public``` 
+
+14. push the images to a container register such as Docker Hub or Google Container register
+```docker push <docker_hub_id>/microgateway:public```
+
+
+## Section 3 - Deployments
+
+
+You have two options in this section, You can choose to deploy it as docker only as option 1 or you can deploy your image in a Kubernetes environment. 
 
 ### Option 1 - Docker only deployment
 
-You can set this up in your desktop environment. 
+In this option, you will be deploying two images, microgateway:secure in port 8000 and microgateway:public in port 8001
 
-1. Clone the project
-```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
-2. Switch directory
-```cd apigee-edgemicro-docker```
-4. Copy the {org}-{env}-config.yaml generated in the [Preperation](#Configuration-Preperation) step to the current folder (from pre-reqs). Edit the Dockerfile with the correct file name.
-5. Build the docker image using following command:
-```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway .```
-6. This will create a image apigee-edgemicro and you can see the images using command:
-```docker images```
-7. To start docker
+You can run the the microgateway image in same local environment that you have previously set up. 
+
+1. To start running  microgateway:secure image
 ```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway```
 
-8. To test ``` curl http://localhost:8000/hello/echo ```
+2. To test, run ``` curl http://localhost:8000/secure/anything ``` 
+    
     you should see something like this
     ```
     {"error":"missing_authorization","error_description":"Missing Authorization header"}
     ```    
+    then run ``` curl http://localhost:8000/public/anything ``` to test the the filter
+    You should get the following if your filter that you have configured works. 
+    ```{"message":"no match found for /public/anything","status":404}```
+
+3. To start running microgateway:public image
+```docker run -d -p 8001:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway```
+
+4. To test, run ``` curl http://localhost:8001/public/anything ``` 
+    
+    you should see something like this
+    ```
+    {"error":"missing_authorization","error_description":"Missing Authorization header"}
+    ```    
+    Then run ``` curl http://localhost:8001/secure/anything ``` to test the filter you have configured for this proxy. 
+      You should get the following if your filter works. 
+      ```{"message":"no match found for /secure/anything","status":404}```
+
 
 
 ### Option 2 - Docker in GCP Kubenetes deployment 
