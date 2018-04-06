@@ -1,20 +1,20 @@
 # Apigee Edge Microgateway on Docker & Kubernetes
-This project describes how you can run Apigee Edge Microgateway docker and Kubernetes 
+This project describe how you can setup multiple Apigee Edge Microgateways using proxy filters, docker and Kubernetes. 
 
 
 ## Prerequisites
 1. Docker installation. For more info please visit [Docker home page](https://www.docker.com/get-docker)
 2. Account with Apigee and understanding how to setup Edge Microgateway proxies. Please see [Edge Microgateway Documentation](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway) for more information
-2. Node.js 4.x or later, for more info visit [Nodejs Github Release Document](https://github.com/nodejs/Release)
+2. Node.js 4.x or later. For more info visit [Nodejs Github Release Document](https://github.com/nodejs/Release)
 3. Basic understanding and experience with Docker
-4. If you choose to run it in a Kubernetes environment, you will need to have some experience with Kubernetes
+4. If you choose to run it in a Kubernetes environment, you will need to have some experience with [Kubernetes](https://kubernetes.io/)
 
 
 
 ## Section 1 - Configuration Preperation 
-Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate how we can deploy seperate microgateway containers to be used for seperate proxy endpoints by utilizing filters 
+Setting up two Edge Microgateway aware proxies to demonstrate how we can deploy seperate microgateway containers to be used for seperate proxy endpoints by utilizing proxy filters. 
 
-   1. Create two microgateway aware reverse proxies:
+   1. Create two Microgateway aware reverse proxies in your existing Apigee portal:
       * edgemicro_firstproxy
         * Proxy Name: edgemicro_firstproxy
         * Proxy Base Path: firstproxy
@@ -26,9 +26,9 @@ Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate
         * Existing API http://httpbin.org/
 
 
-2. In this section, you will generate the key, secret and the {org}-{env}-config.yaml to be used later for deployment. This section assumes you have node.js and npm already installed on your machine.
+2. In this section, you will generate a key, secret and the {org}-{env}-config.yaml to be used later for deployments. This section assumes you already have node.js and npm installed on your localhost/server.
   
-      Open a terminal in your localhost/server and do the following:
+      Please open a terminal in your localhost/server and do the following:
     
     * Install Edge microgateway
       
@@ -54,13 +54,13 @@ Setting up 2 Microgateway aware proxies for the same microgateway to demonstrate
    
 
 ## Section 2 - Build docker images
-The steps in this section is to build docker images. To complete this section, you will need a Docker hub account(or equivalent). 
+The steps in this section are to build Docker container images. To complete this section, you will need a Docker hub account(or equivalent). 
 
-1. Change directory ```cd ~/.edgemicro/```
+1. In your localhost or server, change directory to .edgemicro. Run ```cd ~/.edgemicro/```
 2. Clone the project
 ```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
 
-3. Copy the {org}-{env}-config.yaml generated in the [Configuration Preperation](#Configuration-Preperation) step to the 'apigee-edgemicro-docker' folder created from the previous step.
+3. Copy the {org}-{env}-config.yaml generated in the **Section 1 - Configuration Preperation** to the 'apigee-edgemicro-docker' folder created from the previous step.
 
 4. Switch directory
 ```cd apigee-edgemicro-docker```
@@ -82,10 +82,10 @@ The steps in this section is to build docker images. To complete this section, y
 
 9. Login to docker hub, run ```docker login```
 
-9. push the image to a container register such as Docker Hub (you can also use Google Container Register)
+10. Push the image to a container register such as Docker Hub (you can also use Google Container Register)
 ```docker push <docker_hub_id>/microgateway:first``` 
 
-10. Now edit the {org}-{env}-config.yaml file again by changing the proxyPattern configuration to 'edgemicro_secondproxy*' ```proxyPattern: edgemicro_secondproxy*``` in the edge_config member in the {org}-{env}-config.yaml
+11. Now edit the {org}-{env}-config.yaml file again by changing the proxyPattern configuration to 'edgemicro_secondproxy*' ```proxyPattern: edgemicro_secondproxy*``` in the edge_config member in the {org}-{env}-config.yaml
     ```
     edge_config:
       proxyPattern: edgemicro_secondproxy*
@@ -93,21 +93,20 @@ The steps in this section is to build docker images. To complete this section, y
       .
       . omitted for brevity
     ```
-11. Build the docker image using following command:
+12. Build the docker image using following command:
 ```docker build --build-arg ORG="your-orgname" --build-arg ENV="your-env" -t microgateway:second .```
 
-12. Run ```docker images``` to get the IMAGE_ID of image created in previous step. 
+13. Run ```docker images``` to get the IMAGE_ID of image created in previous step. 
 
-13. Run ```docker tag <image_id> <docker_hub_id>/microgateway:second``` 
+14. Run ```docker tag <image_id> <docker_hub_id>/microgateway:second``` 
 
-14. push the images to a container register such as Docker Hub or Google Container register
+15. push the images to a container register such as Docker Hub or Google Container register
 ```docker push <docker_hub_id>/microgateway:second```
 
 
 ## Section 3 - Deployments
 
-
-You have two options in this section, You can choose to deploy it as docker only as option 1 or you can deploy your image in a Kubernetes environment. 
+You have two deployment options in this section, You can choose to deploy docker only in option 1 or you can deploy your images in a Kubernetes environment. 
 
 ### Option 1 - Docker only deployment
 
@@ -120,15 +119,17 @@ You can run the the microgateway image in same local environment that you have p
 
 2. To test, run ``` curl http://localhost:8000/firstproxy/anything ``` 
     
-    you should see something like this
+    If deployment is successful, you should see something like this
     ```
     {"error":"missing_authorization","error_description":"Missing Authorization header"}
     ```    
-    then run ``` curl http://localhost:8000/secondproxy/anything ``` to test the the filter
-    You should get the following if your filter that you have configured works. 
-    ```{"message":"no match found for /secondproxy/anything","status":404}```
+    To test if the filter is working, run ``` curl http://localhost:8000/secondproxy/anything ``` 
+    You should get the following if the proxy filter that you have configured works. 
+    ```
+    {"message":"no match found for /secondproxy/anything","status":404}
+    ```
 
-3. To start running microgateway:second image
+3. Deploy the second gateway microgateway:second image
 ```docker run -d -p 8001:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway:second```
 
 4. To test, run ``` curl http://localhost:8001/secondproxy/anything ``` 
@@ -145,9 +146,9 @@ You can run the the microgateway image in same local environment that you have p
 
 ### Option 2 - Docker in GCP Kubernetes deployment 
 
-You will need to a Google Cloud platform Account for this option. A local Kubernetes installation might also work but has not been tested at this stage. 
+You will need to a Google Cloud platform Account for this option. A local Kubernetes installation should also work but has not been tested at this stage. 
 
-1. Login to your GCP console, create your Kubernetes cluster under Kubernetes Engine. 
+1. Login to your GCP console, create your Kubernetes cluster under Kubernetes Engine section. 
 
 2. Run the following command to clone the Microgate way project
 ```git clone https://github.com/zcai2672/apigee-edgemicro-docker.git```
@@ -155,8 +156,8 @@ You will need to a Google Cloud platform Account for this option. A local Kubern
 ```cd apigee-edgemicro-docker```
 
 10. Create Kubernetes secret
-    * Convert EdgeMicro credentials to base64
-Convert each of these values into base64. THis will help store those credentails into k8s secrets.
+    * Use the key and secrets generated in step 2 of **Section 1 - Configuration Preperation** and  it to to base64
+Convert each of these values into base64. THis will help store those credentails into Kubernetes secrets.
       ```
       echo -n "org" | base64
       echo -n "env" | base64
@@ -181,7 +182,7 @@ Convert each of these values into base64. THis will help store those credentails
        ``` 
        kubectl create -f  mgw-secret.yaml
        ```
-      for more info on Kubernetes secrets please visit the [here](https://kubernetes.io/docs/concepts/configuration/secret/)
+      For more info on Kubernetes secrets, please see [Kubernetes Secret Doc](https://kubernetes.io/docs/concepts/configuration/secret/)
      
       You can check if the secret creation by issuring the following command
       ```
@@ -195,10 +196,12 @@ Convert each of these values into base64. THis will help store those credentails
       ```
 
       
-11. Create Kubernetes microgateway pod
+11. Create Kubernetes microgateway pods.
 
-    Update the placeholder for'image' member to point to the correct docker container registry location (In Step 8) for file mgw-pod-first.yaml and mgw-pod-second.yaml files. 
+    Open mgw-pod-first.yaml and mgw-pod-second.yaml. 
+    Update the placeholder for the 'image' member to point to the correct docker container registry location (In Step 8) for file mgw-pod-first.yaml and mgw-pod-second.yaml files. 
 
+    
    
 
      If you are using Docker hub, make sure you are logged in
@@ -217,7 +220,7 @@ Convert each of these values into base64. THis will help store those credentails
     kubectl create -f mgw-pod-second.yaml
     ```
 
-    Check if the pod has been created
+    Check if the pods has been created
     ```
     kubectl get pods
     ```
