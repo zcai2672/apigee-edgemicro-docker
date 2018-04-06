@@ -269,10 +269,9 @@ Convert each of these values into base64. THis will help store those credentails
 
     To test the service endpoint, please make sure you are using a terminal on a seperate server or your local machine. Use generated external ip obtained from the previous step and run:
     ```
-    curl -v http://<EXTERNAL-IP>:8000/hello/echo -v
+    curl -v http://<EXTERNAL-IP>:8000/firstproxy/anything -v
     ```
-    You should be see something like this:
-
+    If the deployment is successful you should be see something like this:
 
     ```
     {"error":"missing_authorization","error_description":"Missing Authorization header"}
