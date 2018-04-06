@@ -111,12 +111,14 @@ You have two deployment options in this section, You can choose to deploy docker
 
 ### Option 1 - Docker only deployment
 
-In this option, you will be deploying two images, microgateway:first in port 8000 and microgateway:second in port 8001
+For this option, you will be deploying two Docker container images, microgateway:first in port 8000 and microgateway:second in port 8001
 
 You can run the the microgateway image in same local environment that you have previously set up. 
 
 1. To start running  microgateway:first image
-```docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway:first```
+```
+docker run -d -p 8000:8000 -e EDGEMICRO_ORG="your-orgname" -e EDGEMICRO_ENV="your-env" -e EDGEMICRO_KEY="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -e  EDGEMICRO_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -P -it microgateway:first
+```
 
 2. To test, run ``` curl http://localhost:8000/firstproxy/anything ``` 
     
