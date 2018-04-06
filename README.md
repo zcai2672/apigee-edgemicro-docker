@@ -47,7 +47,7 @@ This section is to set up two Edge Microgateway aware proxies to demonstrate how
     ```
     edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"
     ``` 
-    * If the configuration is successful, you will see a key, secret and token will be displayed. The **{org}-{env}-config.yaml** file has also been generated in the  **~/.edgemicro** directory.
+    * If the configuration is successful, you will see a key, secret and token being displayed. The **{org}-{env}-config.yaml** file has also been generated in the  **~/.edgemicro** directory.
 
     * Save the key, secret and token in a text file of your choice for later use.
 
