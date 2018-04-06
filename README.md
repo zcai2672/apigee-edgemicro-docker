@@ -6,13 +6,13 @@ This project describe how you can setup multiple Apigee Edge Microgateways using
 1. Docker installation. For more info please visit [Docker home page](https://www.docker.com/get-docker)
 2. Account with Apigee and understanding how to setup Edge Microgateway proxies. Please see [Edge Microgateway Documentation](https://docs.apigee.com/api-platform/microgateway/2.5.x/overview-edge-microgateway) for more information
 2. Node.js 4.x or later. For more info visit [Nodejs Github Release Document](https://github.com/nodejs/Release)
-3. Basic understanding and experience with Docker
+3. Basic understanding and experience of Docker
 4. If you choose to run it in a Kubernetes environment, you will need to have some experience with [Kubernetes](https://kubernetes.io/)
 
 
 
 ## Section 1 - Configuration Preperation 
-Setting up two Edge Microgateway aware proxies to demonstrate how we can deploy seperate microgateway containers to be used for seperate proxy endpoints by utilizing proxy filters. 
+This section is to set up two Edge Microgateway aware proxies to demonstrate how we can deploy seperate microgateway containers to be used for seperate proxy endpoints by utilizing proxy filters. 
 
    1. Create two Microgateway aware reverse proxies in your existing Apigee portal:
       * edgemicro_firstproxy
@@ -26,7 +26,7 @@ Setting up two Edge Microgateway aware proxies to demonstrate how we can deploy 
         * Existing API http://httpbin.org/
 
 
-2. In this section, you will generate a key, secret and the {org}-{env}-config.yaml to be used later for deployments. This section assumes you already have node.js and npm installed on your localhost/server.
+2. In this step, you will generate a key, secret and the {org}-{env}-config.yaml for later use. This section assumes you already have node.js and npm installed on your localhost or server.
   
       Please open a terminal in your localhost/server and do the following:
     
@@ -47,10 +47,11 @@ Setting up two Edge Microgateway aware proxies to demonstrate how we can deploy 
     ```
     edgemicro configure -o "your-orgname" -e "your-envname" -u "your-username"
     ``` 
+    * If the configuration is successful, you will see a key, secret and token will be displayed. The **{org}-{env}-config.yaml** file has also been generated in the  **~/.edgemicro** directory.
 
-    * Save the key and secret in a text file for later use.
+    * Save the key, secret and token in a text file of your choice for later use.
 
-    At the end of a successful configuration, in addition to the key and secret, you will also see the ~/.edgemicro/{org}-{env}-config.yaml file generated in [your base directory]/.edgemicro
+    
    
 
 ## Section 2 - Build docker images
